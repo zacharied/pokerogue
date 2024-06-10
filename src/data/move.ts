@@ -3795,6 +3795,8 @@ export class AddBattlerTagAttr extends MoveEffectAttr {
     case BattlerTagType.SNAP_TRAP:
     case BattlerTagType.THUNDER_CAGE:
     case BattlerTagType.INFESTATION:
+    case BattlerTagType.THROAT_CHOPPED:
+    case BattlerTagType.TAUNTED:
       return -3;
     case BattlerTagType.ENCORE:
       return -2;
@@ -6062,7 +6064,7 @@ export function initMoves() {
       .attr(StatChangeAttr, BattleStat.SPDEF, 1, true)
       .attr(AddBattlerTagAttr, BattlerTagType.CHARGED, true, false),
     new StatusMove(Moves.TAUNT, Type.DARK, 100, 20, -1, 0, 3)
-      .unimplemented(),
+      .attr(AddBattlerTagAttr, BattlerTagType.TAUNTED, false, true),
     new StatusMove(Moves.HELPING_HAND, Type.NORMAL, -1, 20, -1, 5, 3)
       .attr(AddBattlerTagAttr, BattlerTagType.HELPING_HAND)
       .target(MoveTarget.NEAR_ALLY),
@@ -7200,7 +7202,7 @@ export function initMoves() {
       .target(MoveTarget.USER_AND_ALLIES)
       .condition((user, target, move) => !![ user, user.getAlly() ].filter(p => p?.isActive()).find(p => !![ Abilities.PLUS, Abilities.MINUS].find(a => p.hasAbility(a, false)))),
     new AttackMove(Moves.THROAT_CHOP, Type.DARK, MoveCategory.PHYSICAL, 80, 100, 15, 100, 0, 7)
-      .partial(),
+      .attr(AddBattlerTagAttr, BattlerTagType.THROAT_CHOPPED, false, false),
     new AttackMove(Moves.POLLEN_PUFF, Type.BUG, MoveCategory.SPECIAL, 90, 100, 15, -1, 0, 7)
       .attr(StatusCategoryOnAllyAttr)
       .attr(HealOnAllyAttr, 0.5, true, false)

@@ -6,7 +6,7 @@ import { Stat, getStatName } from "./pokemon-stat";
 import { StatusEffect } from "./status-effect";
 import * as Utils from "../utils";
 import { Moves } from "./enums/moves";
-import { ChargeAttr, MoveFlags, allMoves } from "./move";
+import { ChargeAttr, MoveCategory, MoveFlags, allMoves } from "./move";
 import { Type } from "./type";
 import { BlockNonDirectDamageAbAttr, FlinchEffectAbAttr, ReverseDrainAbAttr, applyAbAttrs } from "./ability";
 import { Abilities } from "./enums/abilities";
@@ -170,6 +170,46 @@ export class DisabledTag extends DisablingBattlerTag {
 
   private generateAddMessage(pokemon: Pokemon): string {
     return getPokemonMessage(pokemon, `'s ${allMoves[this.moveId].name}\nwas disabled!`);
+  }
+}
+
+/**
+ * A status effect that disables the subject's sound-based moves. Theoretically, this tagtype should be called
+ * something like SILENCED, but {@linkcode Moves.THROAT_CHOP} is the only move that applies it.
+ */
+export class ThroatChoppedTag extends DisablingBattlerTag {
+  constructor(turnCount: integer, sourceId: integer) {
+    super(BattlerTagType.THROAT_CHOPPED, undefined, turnCount, Moves.THROAT_CHOP, sourceId);
+  }
+
+  override moveIsDisabled(move: Moves): boolean {
+    return allMoves[move].hasFlag(MoveFlags.SOUND_BASED);
+  }
+}
+
+/**
+ * Disables non-attacking moves for the subject. Applied by {@linkcode Moves.TAUNT}.
+ */
+export class TauntedTag extends DisablingBattlerTag {
+  constructor(turnCount: integer, sourceId: integer) {
+    super(BattlerTagType.TAUNTED, undefined, turnCount, Moves.TAUNT, sourceId);
+  }
+
+  override moveIsDisabled(move: Moves): boolean {
+    return allMoves[move].category === MoveCategory.STATUS;
+  }
+
+  onAdd(pokemon: Pokemon): void {
+    pokemon.scene.queueMessage(`${getPokemonNameWithAffix(pokemon)}]\nfell for the taunt!`);
+
+    if (!pokemon.turnData.acted) {
+      // If the taunter acted before the receiver, the taunt is 1 turn shorter
+      this.turnCount -= 1;
+    }
+  }
+
+  onRemove(pokemon: Pokemon): void {
+    pokemon.scene.queueMessage(`${getPokemonNameWithAffix(pokemon)}]\nshook off the taunt!`);
   }
 }
 
@@ -1606,6 +1646,10 @@ export function getBattlerTag(tagType: BattlerTagType, turnCount: integer, sourc
     return new IceFaceTag(sourceMove);
   case BattlerTagType.DISABLED:
     return new DisabledTag(turnCount, sourceId);
+  case BattlerTagType.THROAT_CHOPPED:
+    return new ThroatChoppedTag(turnCount, sourceId);
+  case BattlerTagType.TAUNTED:
+    return new TauntedTag(turnCount, sourceId);
   case BattlerTagType.NONE:
   default:
     return new BattlerTag(tagType, BattlerTagLapseType.CUSTOM, turnCount, sourceMove, sourceId);
