@@ -3128,10 +3128,11 @@ export class PostFaintContactDamageAbAttr extends PostFaintAbAttr {
   applyPostFaint(pokemon: Pokemon, passive: boolean, attacker: Pokemon, move: Move, hitResult: HitResult, args: any[]): boolean {
     if (move.checkFlag(MoveFlags.MAKES_CONTACT, attacker, pokemon)) {
       const cancelled = new Utils.BooleanHolder(false);
-      pokemon.scene.getField(true).map(p=>applyAbAttrs(FieldPreventExplosiveMovesAbAttr, p, cancelled));
+      pokemon.scene.getField(true).forEach(p => applyAbAttrs(PreventPostFaintContactDamageAbAttr, p, cancelled));
       if (cancelled.value) {
         return false;
       }
+
       attacker.damageAndUpdate(Math.ceil(attacker.getMaxHp() * (1 / this.damageRatio)), HitResult.OTHER);
       attacker.turnData.damageTaken += Math.ceil(attacker.getMaxHp() * (1 / this.damageRatio));
       return true;
@@ -3142,6 +3143,16 @@ export class PostFaintContactDamageAbAttr extends PostFaintAbAttr {
 
   getTriggerMessage(pokemon: Pokemon, abilityName: string, ...args: any[]): string {
     return getPokemonMessage(pokemon, `'s ${abilityName} hurt\nits attacker!`);
+  }
+}
+
+/**
+ * Prevents the effects of another Pokemon's {@link PostFaintContactDamageAbAttr} ability.
+ * {@linkcode apply} always returns true.
+ */
+export class PreventPostFaintContactDamageAbAttr extends AbAttr {
+  apply(pokemon: Pokemon, passive: boolean, cancelled: Utils.BooleanHolder, args: any[]): boolean {
+    return true;
   }
 }
 
@@ -3800,6 +3811,7 @@ export function initAbilities() {
       .ignorable(),
     new Ability(Abilities.DAMP, 3)
       .attr(FieldPreventExplosiveMovesAbAttr)
+      .attr(PreventPostFaintContactDamageAbAttr)
       .ignorable(),
     new Ability(Abilities.LIMBER, 3)
       .attr(StatusEffectImmunityAbAttr, StatusEffect.PARALYSIS)
