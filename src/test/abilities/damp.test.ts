@@ -1,6 +1,6 @@
-import { Abilities } from "#app/data/enums/abilities.js";
-import { Moves } from "#app/data/enums/moves";
-import { Species } from "#app/data/enums/species";
+import { Abilities } from "#app/enums/abilities.js";
+import { Moves } from "#app/enums/moves";
+import { Species } from "#app/enums/species";
 import * as overrides from "#app/overrides";
 import
 {
