@@ -1031,13 +1031,6 @@ export class VariableMovePowerAbAttr extends PreAttackAbAttr {
   }
 }
 
-export class FieldPreventExplosiveMovesAbAttr extends AbAttr {
-  apply(pokemon: Pokemon, passive: boolean, cancelled: Utils.BooleanHolder, args: any[]): boolean | Promise<boolean> {
-    cancelled.value = true;
-    return true;
-  }
-}
-
 /**
  * Multiplies a BattleStat if the checked Pokemon lacks this ability.
  * If this ability cannot stack, a BooleanHolder can be used to prevent this from stacking.
@@ -3207,6 +3200,42 @@ export class RedirectTypeMoveAbAttr extends RedirectMoveAbAttr {
 
 export class BlockRedirectAbAttr extends AbAttr { }
 
+/**
+ * @param args [0] {@linkcode Move} The move being canceled
+ * @param args [1] {@linkcode Pokemon} The user of the attack
+ */
+export class FieldPreventMovesAbAttr extends AbAttr {
+  public moveCondition: (Moves) => boolean;
+
+  constructor(moveCondition: (Moves) => boolean) {
+    super();
+    this.moveCondition = moveCondition;
+  }
+
+  apply(pokemon: Pokemon, passive: boolean, cancelled: Utils.BooleanHolder, args: any[]): boolean {
+    if (this.moveCondition(args[0] as Move)) {
+      cancelled.value = true;
+      return true;
+    }
+
+    return false;
+  }
+
+  getTriggerMessage(pokemon: Pokemon, abilityName: string, ...args: any[]): string {
+    return (getPokemonMessage(args[1] as Pokemon, ` cannot use ${(args[0] as Move).name}`));
+  }
+}
+
+export class FieldPreventExplosiveMovesAbAttr extends FieldPreventMovesAbAttr {
+  constructor() {
+    const condition: (Move) => boolean = (move: Move) => {
+      return move.hasFlag(MoveFlags.EXPLOSIVE_MOVE);
+    };
+
+    super(condition);
+  }
+}
+
 export class ReduceStatusEffectDurationAbAttr extends AbAttr {
   private statusEffect: StatusEffect;
 
@@ -3568,7 +3597,7 @@ function applyAbAttrsInternal<TAttr extends AbAttr>(attrType: { new(...args: any
           }
         }
         if (!quiet) {
-          const message = attr.getTriggerMessage(pokemon, (!passive ? pokemon.getAbility() : pokemon.getPassiveAbility()).name, args);
+          const message = attr.getTriggerMessage(pokemon, (!passive ? pokemon.getAbility() : pokemon.getPassiveAbility()).name, ...args);
           if (message) {
             if (isAsync) {
               pokemon.scene.ui.showText(message, null, () => pokemon.scene.ui.showText(null, 0), null, true);
