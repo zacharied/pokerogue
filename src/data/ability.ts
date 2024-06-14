@@ -3201,6 +3201,8 @@ export class RedirectTypeMoveAbAttr extends RedirectMoveAbAttr {
 export class BlockRedirectAbAttr extends AbAttr { }
 
 /**
+ * Prevents other Pokemon from using moves that match the given {@linkcode moveCondition}.
+ *
  * @param args [0] {@linkcode Move} The move being canceled
  * @param args [1] {@linkcode Pokemon} The user of the attack
  */
@@ -3212,6 +3214,7 @@ export class FieldPreventMovesAbAttr extends AbAttr {
     this.moveCondition = moveCondition;
   }
 
+  /** @param args See {@linkcode FieldPreventMovesAbAttr}. */
   apply(pokemon: Pokemon, passive: boolean, cancelled: Utils.BooleanHolder, args: any[]): boolean {
     if (this.moveCondition(args[0] as Move)) {
       cancelled.value = true;
@@ -3221,18 +3224,23 @@ export class FieldPreventMovesAbAttr extends AbAttr {
     return false;
   }
 
+  /** @param args See {@linkcode FieldPreventMovesAbAttr}.  */
   getTriggerMessage(pokemon: Pokemon, abilityName: string, ...args: any[]): string {
     return (getPokemonMessage(args[1] as Pokemon, ` cannot use ${(args[0] as Move).name}`));
   }
 }
 
+/**
+ * Prevents moves with the {@linkcode MoveFlags.EXPLOSIVE_MOVE} tag from occurring.
+ * @param args See {@linkcode FieldPreventMovesAbAttr}.
+ */
 export class FieldPreventExplosiveMovesAbAttr extends FieldPreventMovesAbAttr {
-  constructor() {
-    const condition: (Move) => boolean = (move: Move) => {
-      return move.hasFlag(MoveFlags.EXPLOSIVE_MOVE);
-    };
+  private static condition(move: Move): boolean {
+    return move.hasFlag(MoveFlags.EXPLOSIVE_MOVE);
+  }
 
-    super(condition);
+  constructor() {
+    super(FieldPreventExplosiveMovesAbAttr.condition);
   }
 }
 
