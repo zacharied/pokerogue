@@ -1727,7 +1727,7 @@ export default abstract class Pokemon extends Phaser.GameObjects.Container {
 
     // Check if other Pokemon on the field have an ability that prevents this move
     for (const other of this.scene.getField(true).filter(p => source.id !== p.id)) {
-      applyAbAttrs(FieldPreventMovesAbAttr, other, cancelled, move, this as Pokemon);
+      applyAbAttrs(FieldPreventMovesAbAttr, other, cancelled, move, source);
     }
 
     // Apply arena tags for conditional protection
