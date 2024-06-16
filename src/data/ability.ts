@@ -3204,6 +3204,8 @@ export class PostFaintContactDamageAbAttr extends PostFaintAbAttr {
  * {@linkcode apply} always returns true.
  */
 export class PreventPostFaintContactDamageAbAttr extends AbAttr {
+  showAbility: boolean = false;
+
   apply(pokemon: Pokemon, passive: boolean, cancelled: Utils.BooleanHolder, args: any[]): boolean {
     cancelled.value = true;
     return true;
