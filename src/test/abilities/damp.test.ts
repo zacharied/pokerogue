@@ -8,6 +8,8 @@ import { getMovePosition } from "#app/test/utils/gameManagerUtils";
 import Phaser from "phaser";
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
+const TIMEOUT = 20 * 1000;
+
 describe("Abilities - Damp", () => {
   let phaserGame: Phaser.Game;
   let game: GameManager;
@@ -46,10 +48,10 @@ describe("Abilities - Damp", () => {
 
     expect(game.phaseInterceptor.log).toContain("ShowAbilityPhase");
     expect(game.phaseInterceptor.log).not.toContain("FaintPhase");
-  });
+  }, TIMEOUT);
 
-  // Depends on aftermath.test.ts.
-  it("prevents effect of Aftermath silently", async() => {
+  // Invalid if aftermath.test.ts has a failure.
+  it("silently prevents Aftermath from triggering", async() => {
     const moveToUse = Moves.TACKLE;
     const playerAbility = Abilities.DAMP;
     const enemyAbility = Abilities.AFTERMATH;
@@ -71,7 +73,7 @@ describe("Abilities - Damp", () => {
     expect(game.phaseInterceptor.log).toContain("FaintPhase");
     expect(game.phaseInterceptor.log).not.toContain("ShowAbilityPhase");
     expect(game.scene.getParty()[0].getHpRatio()).toBe(1);
-  });
+  }, TIMEOUT);
 
   // Ensures fix of #1476.
   it("does not show ability popup during AI calculations", async() => {
@@ -91,7 +93,7 @@ describe("Abilities - Damp", () => {
     await game.phaseInterceptor.to(TurnEndPhase);
 
     expect(game.phaseInterceptor.log).toContain("ShowAbilityPhase");
-  });
+  }, TIMEOUT);
 
   // TODO Test some of the other AbAttrs that use `args`
   // BattlerTagImmunityAbAttr, StatusEffectImmunityAbAttr

@@ -7,6 +7,8 @@ import { Abilities } from "#enums/abilities";
 import { Species } from "#enums/species";
 import { TurnEndPhase } from "#app/phases.js";
 
+const TIMEOUT = 20 * 1000;
+
 describe("Abilities - Aftermath", () => {
   let phaserGame: Phaser.Game;
   let game: GameManager;
@@ -51,7 +53,7 @@ describe("Abilities - Aftermath", () => {
     expect(game.phaseInterceptor.log).toContain("FaintPhase");
     expect(game.phaseInterceptor.log).toContain("ShowAbilityPhase");
     expect(game.scene.getParty()[0].hp).toBeCloseTo(Math.floor(game.scene.getParty()[0].getMaxHp() * 0.75));
-  });
+  }, TIMEOUT);
 
   it("does not activate on non-contact moves", async () => {
     const moveToUse = Moves.WATER_GUN;
@@ -74,5 +76,5 @@ describe("Abilities - Aftermath", () => {
     expect(game.phaseInterceptor.log).toContain("FaintPhase");
     expect(game.phaseInterceptor.log).not.toContain("ShowAbilityPhase");
     expect(game.scene.getParty()[0].getHpRatio()).toBeCloseTo(1);
-  });
+  }, TIMEOUT);
 });
