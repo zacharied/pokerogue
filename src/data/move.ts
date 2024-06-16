@@ -3109,7 +3109,7 @@ export class PunishmentPowerAttr extends VariablePowerAttr {
 export class PresentPowerAttr extends VariablePowerAttr {
   apply(user: Pokemon, target: Pokemon, move: Move, args: any[]): boolean {
 
-    const powerSeed = Utils.randSeedInt(100);
+    const powerSeed = 100; //Utils.randSeedInt(100);
     if (powerSeed <= 40) {
       (args[0] as Utils.NumberHolder).value = 40;
     } else if (40 < powerSeed && powerSeed <= 70) {
