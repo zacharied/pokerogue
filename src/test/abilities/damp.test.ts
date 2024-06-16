@@ -28,25 +28,6 @@ describe("Abilities - Damp", () => {
     vi.spyOn(overrides, "NEVER_CRIT_OVERRIDE", "get").mockReturnValue(true);
   });
 
-  it("does not show ability popup during AI calculations", async() => {
-    const moveToUse = Moves.EXPLOSION;
-    const enemyAbility = Abilities.DAMP;
-
-    vi.spyOn(overrides, "ABILITY_OVERRIDE", "get").mockReturnValue(Abilities.NONE);
-    vi.spyOn(overrides, "MOVESET_OVERRIDE", "get").mockReturnValue([moveToUse]);
-    vi.spyOn(overrides, "OPP_MOVESET_OVERRIDE", "get").mockReturnValue([Moves.SPLASH, Moves.NONE, Moves.NONE, Moves.NONE]);
-    vi.spyOn(overrides, "OPP_SPECIES_OVERRIDE", "get").mockReturnValue(Species.BIDOOF);
-    vi.spyOn(overrides, "OPP_ABILITY_OVERRIDE", "get").mockReturnValue(enemyAbility);
-
-    await game.startBattle();
-
-    game.doAttack(getMovePosition(game.scene, 0, moveToUse));
-
-    await game.phaseInterceptor.to(TurnEndPhase);
-
-    expect(game.phaseInterceptor.log).toContain("ShowAbilityPhase");
-  });
-
   it("prevents self-destruction effect on explosive attacks", async() => {
     const moveToUse = Moves.EXPLOSION;
     const enemyAbility = Abilities.DAMP;
@@ -67,7 +48,8 @@ describe("Abilities - Damp", () => {
     expect(game.phaseInterceptor.log).not.toContain("FaintPhase");
   });
 
-  it("prevents effect of Aftermath", async() => {
+  // Depends on aftermath.test.ts.
+  it("prevents effect of Aftermath silently", async() => {
     const moveToUse = Moves.TACKLE;
     const playerAbility = Abilities.DAMP;
     const enemyAbility = Abilities.AFTERMATH;
@@ -86,10 +68,31 @@ describe("Abilities - Damp", () => {
 
     await game.phaseInterceptor.to(TurnEndPhase);
 
+    expect(game.phaseInterceptor.log).toContain("FaintPhase");
     expect(game.phaseInterceptor.log).not.toContain("ShowAbilityPhase");
+    expect(game.scene.getParty()[0].getHpRatio()).toBe(1);
+  });
+
+  // Ensures fix of #1476.
+  it("does not show ability popup during AI calculations", async() => {
+    const moveToUse = Moves.EXPLOSION;
+    const enemyAbility = Abilities.DAMP;
+
+    vi.spyOn(overrides, "ABILITY_OVERRIDE", "get").mockReturnValue(Abilities.NONE);
+    vi.spyOn(overrides, "MOVESET_OVERRIDE", "get").mockReturnValue([moveToUse]);
+    vi.spyOn(overrides, "OPP_MOVESET_OVERRIDE", "get").mockReturnValue([Moves.SPLASH, Moves.NONE, Moves.NONE, Moves.NONE]);
+    vi.spyOn(overrides, "OPP_SPECIES_OVERRIDE", "get").mockReturnValue(Species.BIDOOF);
+    vi.spyOn(overrides, "OPP_ABILITY_OVERRIDE", "get").mockReturnValue(enemyAbility);
+
+    await game.startBattle();
+
+    game.doAttack(getMovePosition(game.scene, 0, moveToUse));
+
+    await game.phaseInterceptor.to(TurnEndPhase);
+
+    expect(game.phaseInterceptor.log).toContain("ShowAbilityPhase");
   });
 
   // TODO Test some of the other AbAttrs that use `args`
   // BattlerTagImmunityAbAttr, StatusEffectImmunityAbAttr
-
 });
