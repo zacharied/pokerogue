@@ -39,8 +39,8 @@ describe("Moves - Rollout", () => {
     vi.spyOn(overrides, "ABILITY_OVERRIDE", "get").mockReturnValue(Abilities.NONE);
     vi.spyOn(overrides, "OPP_SPECIES_OVERRIDE", "get").mockReturnValue(Species.BIDOOF);
     vi.spyOn(overrides, "OPP_ABILITY_OVERRIDE", "get").mockReturnValue(Abilities.NONE);
-    vi.spyOn(overrides, "STARTING_LEVEL_OVERRIDE", "get").mockReturnValue(10);
-    vi.spyOn(overrides, "OPP_LEVEL_OVERRIDE", "get").mockReturnValue(10);
+    vi.spyOn(overrides, "STARTING_LEVEL_OVERRIDE", "get").mockReturnValue(100);
+    vi.spyOn(overrides, "OPP_LEVEL_OVERRIDE", "get").mockReturnValue(100);
     vi.spyOn(overrides, "MOVESET_OVERRIDE", "get").mockReturnValue([MOVE_TO_USE]);
     vi.spyOn(overrides, "OPP_MOVESET_OVERRIDE", "get").mockReturnValue([Moves.SPLASH,Moves.SPLASH,Moves.SPLASH,Moves.SPLASH]);
   });
@@ -56,7 +56,7 @@ describe("Moves - Rollout", () => {
 
     const enemy = game.scene.getEnemyParty()[0];
 
-    enemy.stats[Stat.HP] = 1000;
+    enemy.stats[Stat.HP] = 2000;
     enemy.hp = enemy.getMaxHp();
     let turnStartHp = enemy.hp;
 
@@ -87,9 +87,7 @@ describe("Moves - Rollout", () => {
     expect(damageHistory[2]).toBeLessThanOrEqual(damageHistory[1] * 2 + variance);
   };
 
-  for (let i = 0; i < 50; i++) {
-    it("est", func, 10000);
-  }
+  it("func", func, { sequential: true, repeats: 50 });
 
   afterAll(() => {
     for (let i = 0; i < 3; i++) {
