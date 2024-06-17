@@ -1,4 +1,4 @@
-import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import Phaser from "phaser";
 import GameManager from "#app/test/utils/gameManager";
 import * as overrides from "#app/overrides";
@@ -45,7 +45,9 @@ describe("Moves - Rollout", () => {
     vi.spyOn(overrides, "OPP_MOVESET_OVERRIDE", "get").mockReturnValue([Moves.SPLASH,Moves.SPLASH,Moves.SPLASH,Moves.SPLASH]);
   });
 
-  it("roughly doubles damage each consecutive use", async() => {
+  const outputs = [];
+
+  const func = async() => {
     allMoves[MOVE_TO_USE].accuracy = 100;
     const damageHistory: number[] = [];
     const variance = 5;
@@ -76,12 +78,22 @@ describe("Moves - Rollout", () => {
     damageHistory.push(turnStartHp - enemy.hp);
 
     console.log(damageHistory);
+    outputs.push(damageHistory);
 
     expect(damageHistory[1]).toBeGreaterThanOrEqual(damageHistory[0] * 2 - variance);
     expect(damageHistory[1]).toBeLessThanOrEqual(damageHistory[0] * 2 + variance);
 
     expect(damageHistory[2]).toBeGreaterThanOrEqual(damageHistory[1] * 2 - variance);
     expect(damageHistory[2]).toBeLessThanOrEqual(damageHistory[1] * 2 + variance);
-  }, 20000);
-}
-);
+  };
+
+  for (let i = 0; i < 50; i++) {
+    it("est", func, 10000);
+  }
+
+  afterAll(() => {
+    for (let i = 0; i < 3; i++) {
+      console.log(outputs.map(o => o[i]).reduce((p, c) => p + c) / outputs.length);
+    }
+  });
+});
