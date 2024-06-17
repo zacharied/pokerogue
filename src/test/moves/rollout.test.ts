@@ -75,10 +75,13 @@ describe("Moves - Rollout", () => {
 
     damageHistory.push(turnStartHp - enemy.hp);
 
+    console.log(damageHistory);
+
     expect(damageHistory[1]).toBeGreaterThanOrEqual(damageHistory[0] * 2 - variance);
     expect(damageHistory[1]).toBeLessThanOrEqual(damageHistory[0] * 2 + variance);
 
     expect(damageHistory[2]).toBeGreaterThanOrEqual(damageHistory[1] * 2 - variance);
     expect(damageHistory[2]).toBeLessThanOrEqual(damageHistory[1] * 2 + variance);
   }, 20000);
-});
+}
+);
