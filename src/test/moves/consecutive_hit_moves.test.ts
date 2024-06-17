@@ -13,13 +13,9 @@ import { Moves } from "#enums/moves";
 import { Species } from "#enums/species";
 import { allMoves } from "#app/data/move.js";
 
-const MOVE_TO_USE = Moves.ROLLOUT;
-
-describe("Moves - Rollout", () => {
+describe("Moves - Sequential Hits Over Turns Moves", () => {
   let phaserGame: Phaser.Game;
   let game: GameManager;
-
-  const doAttack = (move: Moves = MOVE_TO_USE) => game.doAttack(getMovePosition(game.scene, 0, move));
 
   beforeAll(() => {
     phaserGame = new Phaser.Game({
@@ -41,14 +37,16 @@ describe("Moves - Rollout", () => {
     vi.spyOn(overrides, "OPP_ABILITY_OVERRIDE", "get").mockReturnValue(Abilities.NONE);
     vi.spyOn(overrides, "STARTING_LEVEL_OVERRIDE", "get").mockReturnValue(100);
     vi.spyOn(overrides, "OPP_LEVEL_OVERRIDE", "get").mockReturnValue(100);
-    vi.spyOn(overrides, "MOVESET_OVERRIDE", "get").mockReturnValue([MOVE_TO_USE]);
     vi.spyOn(overrides, "OPP_MOVESET_OVERRIDE", "get").mockReturnValue([Moves.SPLASH,Moves.SPLASH,Moves.SPLASH,Moves.SPLASH]);
   });
 
   const outputs = [];
 
-  const func = async() => {
-    allMoves[MOVE_TO_USE].accuracy = 100;
+  const func = async(move: Moves) => {
+    const doAttack = () => game.doAttack(getMovePosition(game.scene, 0, move));
+    vi.spyOn(overrides, "MOVESET_OVERRIDE", "get").mockReturnValue([move]);
+    allMoves[move].accuracy = 100;
+
     const damageHistory: number[] = [];
     const variance = 5;
 
@@ -87,7 +85,7 @@ describe("Moves - Rollout", () => {
     expect(damageHistory[2]).toBeLessThanOrEqual(damageHistory[1] * 2 + variance);
   };
 
-  it("func", func, { sequential: true, repeats: 50 });
+  it("Fury Cutter", async() => func(Moves.FURY_CUTTER), { sequential: true, repeats: 50 });
 
   afterAll(() => {
     for (let i = 0; i < 3; i++) {
