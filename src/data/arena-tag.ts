@@ -674,6 +674,18 @@ class TailwindTag extends ArenaTag {
   }
 }
 
+export class BattlerAttachedArenaTag extends ArenaTag {
+  constructor(tagType: ArenaTagType, turnCount: integer, sourceMove: Moves, sourceId: integer) {
+    super(tagType, turnCount, sourceMove, sourceId);
+  }
+}
+
+export class UproarTag extends BattlerAttachedArenaTag {
+  constructor(sourceId: integer) {
+    super(ArenaTagType.UPROAR, 5, Moves.UPROAR, sourceId);
+  }
+}
+
 export function getArenaTag(tagType: ArenaTagType, turnCount: integer, sourceMove: Moves, sourceId: integer, targetIndex?: BattlerIndex, side: ArenaTagSide = ArenaTagSide.BOTH): ArenaTag {
   switch (tagType) {
   case ArenaTagType.MIST:
