@@ -691,12 +691,17 @@ export class UproarTag extends StatusEffectImmunityArenaTag {
   public override effects: StatusEffect[] = [ StatusEffect.SLEEP ];
 
   constructor(sourceId: integer) {
-    super(ArenaTagType.UPROAR, 5, Moves.UPROAR, sourceId);
-    this.statuses = [ StatusEffect.SLEEP ];
+    super(ArenaTagType.UPROAR, 3, Moves.UPROAR, sourceId);
+    this.effects = [ StatusEffect.SLEEP ];
   }
 
   onAdd(arena: Arena, quiet?: boolean): void {
     arena.scene.queueMessage(`${arena.scene.getPokemonById(this.sourceId).name} is making\nan Uproar!`);
+    super.onAdd(arena, quiet);
+  }
+
+  onRemove(arena: Arena, quiet?: boolean): void {
+    arena.scene.queueMessage(`${arena.scene.getPokemonById(this.sourceId).name} calmed down.`);
   }
 }
 

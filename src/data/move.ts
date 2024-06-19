@@ -8,7 +8,7 @@ import { StatusEffect, getStatusEffectHealText, isNonVolatileStatusEffect, getNo
 import { Type } from "./type";
 import * as Utils from "../utils";
 import { WeatherType } from "./weather";
-import { ArenaTagSide, ArenaTrapTag } from "./arena-tag";
+import { ArenaTagSide, ArenaTrapTag, UproarTag } from "./arena-tag";
 import { UnswappableAbilityAbAttr, UncopiableAbilityAbAttr, UnsuppressableAbilityAbAttr, BlockRecoilDamageAttr, BlockOneHitKOAbAttr, IgnoreContactAbAttr, MaxMultiHitAbAttr, applyAbAttrs, BlockNonDirectDamageAbAttr, applyPreSwitchOutAbAttrs, PreSwitchOutAbAttr, applyPostDefendAbAttrs, PostDefendContactApplyStatusEffectAbAttr, MoveAbilityBypassAbAttr, ReverseDrainAbAttr, FieldPreventExplosiveMovesAbAttr, ForceSwitchOutImmunityAbAttr, BlockItemTheftAbAttr, applyPostAttackAbAttrs, ConfusionOnStatusEffectAbAttr, HealFromBerryUseAbAttr, IgnoreProtectOnContactAbAttr } from "./ability";
 import { allAbilities } from "./ability";
 import { PokemonHeldItemModifier, BerryModifier, PreserveBerryModifier } from "../modifier/modifier";
@@ -5354,11 +5354,17 @@ export class VariableTargetAttr extends MoveAttr {
   }
 }
 
-export class UproarAttr extends MoveAttr {
+export class UproarAttr extends MoveEffectAttr {
   apply(user: Pokemon, target: Pokemon, move: Move, args: any[]): boolean {
-    user.scene.arena.addTag(ArenaTagType.UPROAR, 3, Moves.UPROAR, user.id);
-    new Array(2).map(null).forEach(() => user.getMoveQueue().push({ move: Moves.UPROAR, targets: getMoveTargets(user, Moves.UPROAR)[0] }));
-    return true;
+    const turnCount = 3;
+    const existingTag = user.scene.arena.findTags(t => t instanceof UproarTag && t.sourceId === user.id).at(0);
+    if (!existingTag || existingTag.turnCount >= turnCount) {
+      user.scene.arena.addTag(ArenaTagType.UPROAR, turnCount, Moves.UPROAR, user.id);
+      new Array(turnCount - 1).fill(null).forEach(() => user.getMoveQueue().push({ move: Moves.UPROAR, targets: getMoveTargets(user, Moves.UPROAR).targets, ignorePP: true }));
+      return true;
+    }
+
+    return false;
   }
 }
 
