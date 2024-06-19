@@ -1449,6 +1449,50 @@ export class IceFaceTag extends BattlerTag {
   }
 }
 
+export class StockpilingTag extends BattlerTag {
+  stacks: number = 0;
+  statIncreases: { [id: string]: number } = { };
+
+  constructor(sourceMove: Moves) {
+    super(BattlerTagType.STOCKPILING, BattlerTagLapseType.CUSTOM, 1, sourceMove);
+  }
+
+  onAdd(pokemon: Pokemon): void {
+    if (this.stacks >= 3) {
+      return;
+    }
+
+    this.stacks++;
+    pokemon.scene.queueMessage(`${pokemon.name}\nstockpiled ${this.stacks}!`);
+
+    for (const stat of [ BattleStat.SPDEF, BattleStat.DEF ]) {
+      if (pokemon.summonData.battleStats[stat] < 6) {
+        if (!(stat in this.statIncreases)) {
+          this.statIncreases[stat] = 0;
+        }
+        this.statIncreases[stat]++;
+        pokemon.scene.phaseQueue.splice(0, 0, new StatChangePhase(pokemon.scene, pokemon.getBattlerIndex(), true, [stat], 1, true));
+      }
+    }
+  }
+
+  onOverlap(pokemon: Pokemon): void {
+    this.onAdd(pokemon);
+  }
+
+  onRemove(pokemon: Pokemon): void {
+    for (const stat of [ BattleStat.SPDEF, BattleStat.DEF ]) {
+      if (pokemon.summonData.battleStats[stat] < 6) {
+        if (!(stat in this.statIncreases)) {
+          this.statIncreases[stat] = 0;
+        }
+        this.statIncreases[stat]++;
+        pokemon.scene.phaseQueue.splice(0, 0, new StatChangePhase(pokemon.scene, pokemon.getBattlerIndex(), true, [stat], -this.statIncreases[stat], true));
+      }
+    }
+  }
+}
+
 export function getBattlerTag(tagType: BattlerTagType, turnCount: integer, sourceMove: Moves, sourceId: integer): BattlerTag {
   switch (tagType) {
   case BattlerTagType.RECHARGING:
@@ -1566,6 +1610,8 @@ export function getBattlerTag(tagType: BattlerTagType, turnCount: integer, sourc
     return new DestinyBondTag(sourceMove, sourceId);
   case BattlerTagType.ICE_FACE:
     return new IceFaceTag(sourceMove);
+  case BattlerTagType.STOCKPILING:
+    return new StockpilingTag(sourceMove);
   case BattlerTagType.NONE:
   default:
     return new BattlerTag(tagType, BattlerTagLapseType.CUSTOM, turnCount, sourceMove, sourceId);

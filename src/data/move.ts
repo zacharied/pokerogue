@@ -1,10 +1,10 @@
 import { ChargeAnim, MoveChargeAnim, initMoveAnim, loadMoveAnimAssets } from "./battle-anims";
 import { BattleEndPhase, MovePhase, NewBattlePhase, PartyStatusCurePhase, PokemonHealPhase, StatChangePhase, SwitchSummonPhase } from "../phases";
 import { BattleStat, getBattleStatName } from "./battle-stat";
-import { EncoreTag } from "./battler-tags";
+import { EncoreTag, StockpilingTag } from "./battler-tags";
 import { getPokemonMessage } from "../messages";
 import Pokemon, { AttackMoveResult, EnemyPokemon, HitResult, MoveResult, PlayerPokemon, PokemonMove, TurnMove } from "../field/pokemon";
-import { StatusEffect, getStatusEffectHealText, isNonVolatileStatusEffect, getNonVolatileStatusEffects} from "./status-effect";
+import { StatusEffect, getStatusEffectHealText, isNonVolatileStatusEffect, getNonVolatileStatusEffects } from "./status-effect";
 import { Type } from "./type";
 import * as Utils from "../utils";
 import { WeatherType } from "./weather";
@@ -5546,6 +5546,37 @@ export class hitsSameTypeAttr extends VariableMoveTypeMultiplierAttr {
   }
 }
 
+export class HealFromStockpileStacksAttr extends HealAttr {
+  constructor() {
+    super(0);
+  }
+
+  apply(user: Pokemon, target: Pokemon, move: Move, args: any[]): boolean {
+    const stockpile = user.findTag(t => t.tagType === BattlerTagType.STOCKPILING) as StockpilingTag;
+    if (!stockpile) {
+      return false;
+    }
+
+    const healRatio = 0.25 * Math.pow(2, stockpile.stacks - 1);
+    this.addHealPhase(target, healRatio);
+  }
+}
+
+export class StockpileStacksPowerAttr extends VariablePowerAttr {
+  apply(user: Pokemon, target: Pokemon, move: Move, args: any[]): boolean {
+    const stockpile = user.findTag(t => t.tagType === BattlerTagType.STOCKPILING) as StockpilingTag;
+    if (!stockpile) {
+      return false;
+    }
+
+    const power = args[0] as Utils.NumberHolder;
+    power.value = 100 * stockpile.stacks;
+    return true;
+  }
+}
+
+const hasStockpileStacksCondition: MoveConditionFunc = (user, target, move) => !!user.getTag(BattlerTagType.STOCKPILING);
+
 const unknownTypeCondition: MoveConditionFunc = (user, target, move) => !user.getTypes().includes(Type.UNKNOWN);
 
 export type MoveTargetSet = {
@@ -6319,12 +6350,16 @@ export function initMoves() {
       .target(MoveTarget.RANDOM_NEAR_ENEMY)
       .partial(),
     new SelfStatusMove(Moves.STOCKPILE, Type.NORMAL, -1, 20, -1, 0, 3)
-      .unimplemented(),
+      .attr(AddBattlerTagAttr, BattlerTagType.STOCKPILING, true, false),
     new AttackMove(Moves.SPIT_UP, Type.NORMAL, MoveCategory.SPECIAL, -1, 100, 10, -1, 0, 3)
-      .unimplemented(),
+      .condition(hasStockpileStacksCondition)
+      .attr(StockpileStacksPowerAttr)
+      .attr(RemoveBattlerTagAttr, [ BattlerTagType.STOCKPILING ]),
     new SelfStatusMove(Moves.SWALLOW, Type.NORMAL, -1, 10, -1, 0, 3)
-      .triageMove()
-      .unimplemented(),
+      .condition(hasStockpileStacksCondition)
+      .attr(HealFromStockpileStacksAttr)
+      .attr(RemoveBattlerTagAttr, [ BattlerTagType.STOCKPILING ])
+      .triageMove(),
     new AttackMove(Moves.HEAT_WAVE, Type.FIRE, MoveCategory.SPECIAL, 95, 90, 10, 10, 0, 3)
       .attr(HealStatusEffectAttr, true, StatusEffect.FREEZE)
       .attr(StatusEffectAttr, StatusEffect.BURN)
