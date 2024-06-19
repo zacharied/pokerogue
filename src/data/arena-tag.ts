@@ -692,6 +692,7 @@ export class UproarTag extends StatusEffectImmunityArenaTag {
 
   constructor(sourceId: integer) {
     super(ArenaTagType.UPROAR, 5, Moves.UPROAR, sourceId);
+    this.statuses = [ StatusEffect.SLEEP ];
   }
 
   onAdd(arena: Arena, quiet?: boolean): void {
