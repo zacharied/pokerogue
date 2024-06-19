@@ -3728,7 +3728,11 @@ export class FaintPhase extends PokemonPhase {
     }
 
     pokemon.lapseTags(BattlerTagLapseType.FAINT);
-    this.scene.getField(true).filter(p => p !== pokemon).forEach(p => p.removeTagsBySourceId(pokemon.id));
+    this.scene.clearLinkedTags(pokemon);
+    // Initial line was this:
+    //    this.scene.getField(true).filter(p => p !== pokemon).forEach(p => p.removeTagsBySourceId(pokemon.id));
+    // Do we care that it was specifying player field only? Seems wrong to me.
+    // Like wouldn't you want INFATUATED to disappear if an enemy used it on another enemy in doubles?
 
     pokemon.faintCry(() => {
       if (pokemon instanceof PlayerPokemon) {
@@ -4892,7 +4896,10 @@ export class AttemptCapturePhase extends PokemonPhase {
       };
       const removePokemon = () => {
         this.scene.addFaintedEnemyScore(pokemon);
+
         this.scene.getPlayerField().filter(p => p.isActive(true)).forEach(playerPokemon => playerPokemon.removeTagsBySourceId(pokemon.id));
+        this.scene.arena.findAndRemoveTags(t => t.isSourceLinked && t.sourceId === pokemon.id);
+
         pokemon.hp = 0;
         pokemon.trySetStatus(StatusEffect.FAINT);
         this.scene.clearEnemyHeldItemModifiers();

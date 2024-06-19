@@ -97,6 +97,10 @@ export interface InfoToggle {
 }
 
 export default class BattleScene extends SceneBase {
+  clearLinkedTags(pokemon: Pokemon) {
+    this.getField(true).filter(p => p !== pokemon).forEach(p => p.removeTagsBySourceId(pokemon.id));
+    this.arena.findAndRemoveTags(t => t.isSourceLinked && t.sourceId === pokemon.id);
+  }
   public rexUI: UIPlugin;
   public inputController: InputsController;
   public uiInputs: UiInputs;

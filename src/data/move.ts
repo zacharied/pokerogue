@@ -5354,6 +5354,14 @@ export class VariableTargetAttr extends MoveAttr {
   }
 }
 
+export class UproarAttr extends MoveAttr {
+  apply(user: Pokemon, target: Pokemon, move: Move, args: any[]): boolean {
+    user.scene.arena.addTag(ArenaTagType.UPROAR, 3, Moves.UPROAR, user.id);
+    new Array(2).map(null).forEach(() => user.getMoveQueue().push({ move: Moves.UPROAR, targets: getMoveTargets(user, Moves.UPROAR)[0] }));
+    return true;
+  }
+}
+
 const failOnGravityCondition: MoveConditionFunc = (user, target, move) => !user.scene.arena.getTag(ArenaTagType.GRAVITY);
 
 const failOnBossCondition: MoveConditionFunc = (user, target, move) => !target.isBossImmune();
@@ -6204,9 +6212,10 @@ export function initMoves() {
       .condition(new FirstMoveCondition()),
     new AttackMove(Moves.UPROAR, Type.NORMAL, MoveCategory.SPECIAL, 90, 100, 10, -1, 0, 3)
       .ignoresVirtual()
+      .attr(UproarAttr)
+      .attr(AddArenaTagAttr, ArenaTagType.UPROAR, 5, false)
       .soundBased()
-      .target(MoveTarget.RANDOM_NEAR_ENEMY)
-      .partial(),
+      .target(MoveTarget.RANDOM_NEAR_ENEMY),
     new SelfStatusMove(Moves.STOCKPILE, Type.NORMAL, -1, 20, -1, 0, 3)
       .unimplemented(),
     new AttackMove(Moves.SPIT_UP, Type.NORMAL, MoveCategory.SPECIAL, -1, 100, 10, -1, 0, 3)

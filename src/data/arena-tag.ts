@@ -29,6 +29,7 @@ export abstract class ArenaTag {
   public sourceId: integer;
   public side: ArenaTagSide;
 
+  public isSourceLinked: boolean = false;
 
   constructor(tagType: ArenaTagType, turnCount: integer, sourceMove: Moves, sourceId?: integer, side: ArenaTagSide = ArenaTagSide.BOTH) {
     this.tagType = tagType;
@@ -674,15 +675,27 @@ class TailwindTag extends ArenaTag {
   }
 }
 
-export class BattlerAttachedArenaTag extends ArenaTag {
-  constructor(tagType: ArenaTagType, turnCount: integer, sourceMove: Moves, sourceId: integer) {
-    super(tagType, turnCount, sourceMove, sourceId);
+export class StatusEffectImmunityArenaTag extends ArenaTag {
+  public effects: StatusEffect[];
+
+  onAdd(arena: Arena, quiet?: boolean): void {
+    for (const pokemon of arena.scene.getField().filter(p => p.status?.effect === StatusEffect.SLEEP)) {
+      arena.scene.queueMessage(`${pokemon.name} woke up!`);
+      pokemon.resetStatus();
+    }
   }
 }
 
-export class UproarTag extends BattlerAttachedArenaTag {
+export class UproarTag extends StatusEffectImmunityArenaTag {
+  public override isSourceLinked: boolean = true;
+  public override effects: StatusEffect[] = [ StatusEffect.SLEEP ];
+
   constructor(sourceId: integer) {
     super(ArenaTagType.UPROAR, 5, Moves.UPROAR, sourceId);
+  }
+
+  onAdd(arena: Arena, quiet?: boolean): void {
+    arena.scene.queueMessage(`${arena.scene.getPokemonById(this.sourceId).name} is making\nan Uproar!`);
   }
 }
 
@@ -727,5 +740,7 @@ export function getArenaTag(tagType: ArenaTagType, turnCount: integer, sourceMov
     return new AuroraVeilTag(turnCount, sourceId, side);
   case ArenaTagType.TAILWIND:
     return new TailwindTag(turnCount, sourceId, side);
+  case ArenaTagType.UPROAR:
+    return new UproarTag(sourceId);
   }
 }

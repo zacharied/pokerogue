@@ -615,13 +615,26 @@ export class Arena {
     return !!tag;
   }
 
-
   removeAllTags(): void {
     while (this.tags.length) {
       this.tags[0].onRemove(this);
       this.eventTarget.dispatchEvent(new TagRemovedEvent(this.tags[0].tagType, this.tags[0].side, this.tags[0].turnCount));
 
       this.tags.splice(0, 1);
+    }
+  }
+
+  findAndRemoveTags(predicate: (t: ArenaTag) => boolean) {
+    let i = 0;
+    while (this.tags.length > i) {
+      if (predicate(this.tags[i])) {
+        this.tags[i].onRemove(this);
+        this.eventTarget.dispatchEvent(new TagRemovedEvent(this.tags[i].tagType, this.tags[i].side, this.tags[i].turnCount));
+
+        this.tags.splice(i, 1);
+      } else {
+        i += 1;
+      }
     }
   }
 
